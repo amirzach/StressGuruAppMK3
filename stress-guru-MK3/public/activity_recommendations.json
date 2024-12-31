@@ -1,0 +1,71 @@
+{
+    "Stress": {
+        "Normal": [
+            "Take a short walk outside.",
+            "Practice deep breathing exercises.",
+            "Spend some time with friends or family."
+        ],
+        "Mild": [
+            "Try practicing yoga or meditation.",
+            "Listen to calming music.",
+            "Try a hobby like painting or journaling."
+        ],
+        "Moderate": [
+            "Consider taking a break or a vacation.",
+            "Try guided relaxation techniques.",
+            "Reach out to a counselor or therapist."
+        ],
+        "Severe": [
+            "It's important to seek professional help. Contact a therapist or counselor.",
+            "Consider taking time off work or school to recharge."
+        ],
+        "Extremely Severe": [
+            "Seek immediate professional help. Contact a therapist, counselor, or healthcare provider."
+        ]
+    },
+    "Anxiety": {
+        "Normal": [
+            "Try deep breathing exercises.",
+            "Go for a walk outside to clear your mind.",
+            "Stay connected with loved ones."
+        ],
+        "Mild": [
+            "Practice mindfulness or meditation.",
+            "Consider journaling your thoughts and feelings.",
+            "Engage in a relaxing activity, like reading or crafting."
+        ],
+        "Moderate": [
+            "Seek support from a therapist or counselor.",
+            "Try calming exercises like progressive muscle relaxation.",
+            "Consider talking to someone you trust about your feelings."
+        ],
+        "Severe": [
+            "Consider seeking professional help as soon as possible. A therapist can help with coping strategies.",
+            "Consider medication if prescribed by a doctor."
+        ],
+        "Extremely Severe": [
+            "Immediate professional help is recommended. Contact a healthcare provider or therapist."
+        ]
+    },
+    "Depression": {
+        "Normal": [
+            "Maintain a healthy routine. Keep your body active and engaged.",
+            "Stay in touch with loved ones and share your thoughts."
+        ],
+        "Mild": [
+            "Try engaging in a relaxing activity, like reading, watching a show, or cooking.",
+            "Engage in light physical exercise like walking or stretching."
+        ],
+        "Moderate": [
+            "Consider seeking professional help from a therapist.",
+            "Try to connect with supportive friends or family for comfort."
+        ],
+        "Severe": [
+            "It's essential to seek professional help immediately. Contact a counselor or therapist.",
+            "Consider reaching out to a mental health hotline for support."
+        ],
+        "Extremely Severe": [
+            "Immediate professional help is crucial. Contact a healthcare provider or therapist without delay."
+        ]
+    }
+}
