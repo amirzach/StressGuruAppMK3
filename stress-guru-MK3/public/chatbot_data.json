@@ -1,0 +1,24 @@
+{
+    "greetings": [
+        "Hi! How are you feeling today?",
+        "Hey! It's good to chat with you. How's your day going?",
+        "Hello! Let's talk a bit. How are things?"
+    ],
+    "greeting_reactions": {
+        "good": ["That's great to hear! ", "Awesome! I'm glad to hear that.", "Fantastic! What made your day good?"],
+        "okay": ["I see. Sometimes okay is just fine too.", "Thanks for sharing. If you need to talk, I'm here.", "Got it. It's okay to feel neutral sometimes."],
+        "bad": ["I'm sorry to hear that. Want to talk about it?", "That sounds tough. I'm here if you need someone to listen.", "I'm here for you. You're not alone."]
+    },
+    "small_talk": [
+        { "text": "That's interesting! ", "weight": 5 },
+        { "text": "I see. Go on...", "weight": 3 },
+        { "text": "Thanks for sharing that!", "weight": 4 },
+        { "text": "I'm listening. Take your time.", "weight": 2 },
+        { "text": "You can take your time. I'm here for you.", "weight": 1 }
+    ],
+    "exit_prompts": [
+        "Do you want to continue, or would you prefer to stop for now?",
+        "Would you like to keep going, or should we wrap things up?",
+        "Are you ready to move on, or do you need a break?"
+    ]
+}
