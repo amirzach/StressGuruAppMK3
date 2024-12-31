@@ -1,0 +1,17 @@
+{
+  "name": "project-root",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "concurrently \"npm run start-client\" \"npm run start-server\"",
+    "start-client": "npm start --prefix stress-guru-mk2",
+    "start-server": "cd stress-guru-mk2-backend && node server.js"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "concurrently": "^8.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "project-root": "file:"
+  }
+}
