@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { v4 as uuidv4 } from 'uuid'
 import './App.css'; 
 import { FiLogOut } from 'react-icons/fi';
 
@@ -153,28 +154,34 @@ const RegisterScreen = ({ navigate }) => {
 
 const ChangePasswordScreen = ({ navigate }) => {
   const [email, setEmail] = useState('');
-  const [ setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
+    setError(''); // Clear previous error
+    setSuccess(''); // Clear previous success message
+
+    if (!email || !newPassword) {
+      setError('Email and new password are required.');
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:5001/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, newPassword }),
+        body: JSON.stringify({ email, new_password: newPassword }), // Match the backend key
       });
 
       const data = await response.json();
       if (response.ok) {
         setSuccess('Password reset successful!');
         setEmail('');
-        setCurrentPassword('');
         setNewPassword('');
       } else {
-        setError(data.error || 'Password reset failed');
+        setError(data.message || 'Password reset failed.'); // Match backend error response key
       }
     } catch (err) {
       setError('Server error. Please try again.');
@@ -208,290 +215,391 @@ const ChangePasswordScreen = ({ navigate }) => {
   );
 };
 
-// Helper function for weighted random choice
-const weightedRandomChoice = (options) => {
-  const totalWeight = options.reduce((sum, option) => sum + option.weight, 0);
-  const randVal = Math.random() * totalWeight;
-  let cumulativeWeight = 0;
-  
-  for (const option of options) {
-    cumulativeWeight += option.weight;
-    if (randVal <= cumulativeWeight) {
-      return option.text;
-    }
-  }
-};
-
-// Score mapping for responses
-const scoreKeywords = {
-  0: ["no", "never", "not at all"],
-  1: ["a little", "sometimes", "rarely"],
-  2: ["maybe", "occasionally", "quite a bit"],
-  3: ["yes", "often", "frequently", "a lot"]
-};
-
-// Category mapping
-const categoryMapping = {
-  "S": "Stress",
-  "A": "Anxiety",
-  "D": "Depression"
-};
-
-// Severity labels for feedback
-const severityLabels = {
-  "Stress": [
-    [0, 14, "Normal"],
-    [15, 18, "Mild"],
-    [19, 25, "Moderate"],
-    [26, 33, "Severe"],
-    [34, Infinity, "Extremely Severe"]
-  ],
-  "Anxiety": [
-    [0, 7, "Normal"],
-    [8, 9, "Mild"],
-    [10, 14, "Moderate"],
-    [15, 19, "Severe"],
-    [20, Infinity, "Extremely Severe"]
-  ],
-  "Depression": [
-    [0, 9, "Normal"],
-    [10, 13, "Mild"],
-    [14, 20, "Moderate"],
-    [21, 27, "Severe"],
-    [28, Infinity, "Extremely Severe"]
-  ]
-};
-
 const ChatScreen = ({ navigate }) => {
   const [darkMode, setDarkMode] = useState(false);
   const [messages, setMessages] = useState([]);
   const [userResponse, setUserResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [chatbotData, setChatbotData] = useState(null);
-  const [dassData, setDassData] = useState(null);
-  const [activityRecommendations, setActivityRecommendations] = useState(null);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [assessmentStarted, setAssessmentStarted] = useState(false);
-  const [responses, setResponses] = useState([]);
-  const [dataLoaded, setDataLoaded] = useState(false);
+  const [animatedMessages, setAnimatedMessages] = useState(new Set());
+  const [displayedTexts, setDisplayedTexts] = useState({});
+  const [assessment, setAssessment] = useState({
+    inProgress: false,
+    currentResponses: [],
+    completed: false,
+    showingHistory: false
+  });
+  
   const chatWindowRef = useRef(null);
+  const typewriterSpeed = 30;
+  const messageQueue = useRef([]);
+  const isAnimating = useRef(false);
+  const isInitialized = useRef(false);
 
-  // Extract score from user response
-  const extractScoreFromResponse = (response) => {
-    const lowerResponse = response.toLowerCase();
-    for (const [score, keywords] of Object.entries(scoreKeywords)) {
-      if (keywords.some(keyword => lowerResponse.includes(keyword))) {
-        return parseInt(score);
-      }
-    }
-    return null;
-  };
-
-  // Calculate final scores
-  const calculateScores = (responses) => {
-    const scores = { "Stress": 0, "Anxiety": 0, "Depression": 0 };
-    responses.forEach(([score, category]) => {
-      scores[category] += score * 2;
-    });
-    return scores;
-  };
-
-  // Provide feedback based on scores
-  const provideFeedback = (scores) => {
-    const feedback = [];
+  const getStressRecommendations = (stressLevel) => {
+    const recommendations = {
+      'low stress': [
+        "Continue your current stress management practices - they're working well!",
+        "Try incorporating a daily mindfulness practice to maintain your low stress levels",
+        "Consider starting a gratitude journal to reinforce positive thinking"
+      ],
+      'moderate stress': [
+        "Take regular breaks during work - try the 25/5 Pomodoro technique",
+        "Practice deep breathing exercises for 5 minutes, 3 times a day",
+        "Make time for light exercise like walking or stretching",
+        "Consider limiting caffeine intake and maintaining a regular sleep schedule"
+      ],
+      'high stress': [
+        "Schedule time for daily relaxation activities like meditation or yoga",
+        "Reach out to friends or family for support - social connections are important",
+        "Try progressive muscle relaxation before bed to improve sleep quality",
+        "Consider talking to a mental health professional for additional support",
+        "Make time for regular physical exercise to reduce stress hormones"
+      ]
+    };
     
-    Object.entries(scores).forEach(([category, score]) => {
-      const severityRanges = severityLabels[category];
-      for (const [min, max, label] of severityRanges) {
-        if (score >= min && score <= max) {
-          feedback.push(`${category}: ${score} - ${label}`);
-          
-          if (activityRecommendations && 
-              activityRecommendations[category] && 
-              activityRecommendations[category][label]) {
-            feedback.push(`Here are some activities that could help with ${category.toLowerCase()}:`);
-            activityRecommendations[category][label].forEach(activity => {
-              feedback.push(`• ${activity}`);
-            });
-          }
-          break;
-        }
-      }
-    });
-
-    feedback.forEach(msg => addMessage('bot', msg));
-    addMessage('bot', "It's okay to feel how you're feeling. If you need to talk more, I'm here.");
-    addMessage('bot', "If things get tough, please consider reaching out to someone you trust or a professional.");
+    return recommendations[stressLevel] || [
+      "Practice regular self-care activities",
+      "Make time for activities you enjoy",
+      "Maintain a balanced daily routine"
+    ];
   };
 
-  // Load JSON data on component mount
+  // Scroll to bottom when messages change
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [chatbotResponse, dassResponse, activityResponse] = await Promise.all([
-          fetch('/chatbot_data.json'),
-          fetch('/dass_data.json'),
-          fetch('/activity_recommendations.json')
-        ]);
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+    }
+  }, [messages, displayedTexts]);
 
-        const chatbotJson = await chatbotResponse.json();
-        const dassJson = await dassResponse.json();
-        const activityJson = await activityResponse.json();
+  // Animation manager
+  const processMessageQueue = useCallback(async () => {
+    if (isAnimating.current || messageQueue.current.length === 0) return;
 
-        setChatbotData(chatbotJson);
-        setDassData(dassJson);
-        setActivityRecommendations(activityJson);
-        setDataLoaded(true);
+    isAnimating.current = true;
+    const message = messageQueue.current[0];
 
-        // Send initial greeting
-        const currentHour = new Date().getHours();
-        let greeting;
-        if (currentHour >= 5 && currentHour < 12) {
-          greeting = "Good morning! How are you feeling today?";
-        } else if (currentHour >= 12 && currentHour < 18) {
-          greeting = "Good afternoon! How's everything going?";
-        } else {
-          greeting = "Good evening! I hope your day has been okay so far.";
-        }
-        addMessage('bot', greeting);
-      } catch (error) {
-        console.error('Error loading chat data:', error);
-        addMessage('bot', 'I apologize, but I had trouble loading. Please try refreshing the page.');
+    if (message.sender === 'bot' && !animatedMessages.has(message.id)) {
+      let displayText = '';
+      setDisplayedTexts(prev => ({ ...prev, [message.id]: '' }));
+
+      for (let i = 0; i < message.text.length; i++) {
+        displayText += message.text[i];
+        setDisplayedTexts(prev => ({ ...prev, [message.id]: displayText }));
+        await new Promise(resolve => setTimeout(resolve, typewriterSpeed));
       }
+
+      setAnimatedMessages(prev => new Set([...prev, message.id]));
+    }
+
+    messageQueue.current.shift();
+    isAnimating.current = false;
+    processMessageQueue();
+  }, [animatedMessages, typewriterSpeed]);
+
+  // Handle message queue processing
+  useEffect(() => {
+    if (messageQueue.current.length > 0 && !isAnimating.current) {
+      processMessageQueue();
+    }
+  }, [messages, processMessageQueue]);
+
+  const addMessage = useCallback((sender, text) => {
+    const newMessage = {
+      id: uuidv4(),
+      sender,
+      text,
+      timestamp: Date.now()
     };
 
-    loadData();
-  }, []);
+    setMessages(prev => [...prev, newMessage]);
+    if (sender === 'bot') {
+      messageQueue.current.push(newMessage);
+      if (!isAnimating.current) {
+        processMessageQueue();
+      }
+    } else {
+      setAnimatedMessages(prev => new Set([...prev, newMessage.id]));
+      setDisplayedTexts(prev => ({ ...prev, [newMessage.id]: text }));
+    }
+  }, [processMessageQueue]);
 
-  // Add message to chat
-  const addMessage = (sender, text) => {
-    setMessages(prev => [...prev, { sender, text }]);
+  // Initialize chat - only run once
+  useEffect(() => {
+    if (!isInitialized.current && messages.length === 0) {
+      isInitialized.current = true;
+      addMessage('bot', 'Welcome to StressGuru.');
+      addMessage('bot', 'I\'ll help evaluate your stress levels using an adaptive questioning approach.');
+      addMessage('bot', 'Would you like to begin? (yes/no)');
+    }
+  }, [addMessage]);
+
+  const getNextQuestion = async (currentResponses) => {
+    try {
+      const response = await fetch('http://localhost:5001/pss/next-question', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-access-token': localStorage.getItem('token')
+        },
+        body: JSON.stringify({ current_responses: currentResponses })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching next question:', error);
+      throw error;
+    }
   };
 
-  // Handle initial greeting response
-  const handleInitialGreetingResponse = (response) => {
-    if (!chatbotData || !chatbotData.greeting_reactions) {
-      addMessage('bot', "I'm sorry, I'm still loading. Please try again in a moment.");
-      return;
+
+  const handleAssessmentSubmit = async (responses) => {
+    try {
+      // Format responses as array of [index, response] pairs
+      const formattedResponses = responses.map((response, index) => [
+        assessment.currentQuestionIndex - responses.length + index + 1, 
+        response
+      ]);
+
+      console.log('Sending responses:', formattedResponses); // Debug log
+
+      const response = await fetch('http://localhost:5001/pss/assess', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-access-token': localStorage.getItem('token')
+        },
+        body: JSON.stringify({ responses: formattedResponses })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Add null checks and default values
+      const questionsAnswered = data.questions_answered || 0;
+      const score = typeof data.score === 'number' ? Math.round(data.score) : 0;
+      const stressLevel = data.stress_level || 'undefined';
+      
+      addMessage('bot', '=== Assessment Results ===');
+      addMessage('bot', `Questions Answered: ${questionsAnswered}`);
+      addMessage('bot', `PSS Score: ${score}`);
+      addMessage('bot', `AI Assessment: ${stressLevel}`);
+      
+      if (data.confidence && data.confidence > 0.7) {
+        addMessage('bot', `Confidence Level: ${(data.confidence * 100).toFixed(1)}%`);
+      }
+
+      // Add recommendations based on stress level
+      addMessage('bot', '\n=== Recommended Activities ===');
+      const recommendations = getStressRecommendations(stressLevel);
+      recommendations.forEach(recommendation => {
+        addMessage('bot', `• ${recommendation}`);
+      });
+
+      if (stressLevel === 'high stress') {
+        addMessage('bot', 'Note: If you\'re experiencing high levels of stress, consider talking to a mental health professional.');
+      }
+
+      addMessage('bot', 'Would you like to see your assessment history? (yes/no)');
+      setAssessment(prev => ({ ...prev, completed: true }));
+
+    } catch (error) {
+      console.error('Error submitting assessment:', error);
+      addMessage('bot', 'Sorry, there was an error processing your assessment. Would you like to try again? (yes/no)');
+      setAssessment(prev => ({ ...prev, inProgress: false, completed: false }));
     }
-
-    const lowerResponse = response.toLowerCase();
-    let sentiment = 'neutral';
-
-    if (lowerResponse.includes('good') || lowerResponse.includes('great') || lowerResponse.includes('wonderful')) {
-      sentiment = 'good';
-    } else if (lowerResponse.includes('okay') || lowerResponse.includes('fine')) {
-      sentiment = 'okay';
-    } else if (lowerResponse.includes('bad') || lowerResponse.includes('terrible') || lowerResponse.includes('not')) {
-      sentiment = 'bad';
-    }
-
-    const reactions = chatbotData.greeting_reactions[sentiment] || 
-                     chatbotData.greeting_reactions.neutral || 
-                     ["I'm here to listen and help."];
-                     
-    const selectedResponse = Array.isArray(reactions) ? 
-      reactions[Math.floor(Math.random() * reactions.length)] : 
-      "I'm here to listen and help.";
-
-    addMessage('bot', selectedResponse);
-    addMessage('bot', "Would you like to answer some questions to help me better understand how you're feeling? (yes/no)");
   };
 
-  // Handle user response
+  const fetchAndDisplayHistory = async () => {
+    try {
+      const response = await fetch('http://localhost:5001/pss/history', {
+        headers: {
+          'x-access-token': localStorage.getItem('token')
+        }
+      });
+      const data = await response.json();
+      
+      if (data.history && data.history.length > 0) {
+        addMessage('bot', '=== Assessment History ===');
+        data.history.slice(0, 5).forEach(entry => {
+          const date = new Date(entry.timestamp).toLocaleDateString();
+          addMessage('bot', 
+            `Date: ${date} - Score: ${Math.round(entry.score)} - Level: ${entry.stress_level}` +
+            (entry.ai_confidence > 0.7 ? ` (Confidence: ${(entry.ai_confidence * 100).toFixed(1)}%)` : '')
+          );
+        });
+      } else {
+        addMessage('bot', 'No previous assessment history found.');
+      }
+      
+      addMessage('bot', 'Would you like to take another assessment? (yes/no)');
+    } catch (error) {
+      console.error('Error fetching history:', error);
+      addMessage('bot', 'Sorry, there was an error fetching your history. Would you like to take another assessment? (yes/no)');
+    }
+  };
+
   const handleUserResponse = async () => {
-    if (!userResponse.trim() || !dataLoaded) return;
-
+    if (!userResponse.trim() || isLoading) return;
     setIsLoading(true);
+
+    const response = userResponse.toLowerCase().trim();
     addMessage('user', userResponse);
-    const response = userResponse.trim().toLowerCase();
     setUserResponse('');
 
     try {
-      if (!assessmentStarted) {
-        if (response.includes('yes') || response.includes('y')) {
-          setAssessmentStarted(true);
-          addMessage('bot', "Thank you for being willing to share. I'm going to ask you some questions about how you've been feeling.");
-          if (dassData && dassData.questions && dassData.questions[currentQuestion]) {
-            addMessage('bot', dassData.questions[currentQuestion]);
+      if (!assessment.inProgress) {
+        if (response === 'yes') {
+          setAssessment(prev => ({
+            ...prev,
+            inProgress: true,
+            currentResponses: [],
+            currentQuestionIndex: 0
+          }));
+          const nextQuestion = await getNextQuestion([]);
+          if (nextQuestion && !nextQuestion.complete) {
+            addMessage('bot', 'In the last month, ' + nextQuestion.question);
+            addMessage('bot', 'Please answer with: never, almost never, sometimes, fairly often, or very often');
+            setAssessment(prev => ({
+              ...prev,
+              currentQuestionIndex: nextQuestion.question_index
+            }));
           }
-        } else if (response.includes('no') || response.includes('n')) {
-          addMessage('bot', "That's perfectly fine! Sometimes just chatting is enough. I'm here whenever you need me.");
+        } else if (response === 'no') {
+          addMessage('bot', 'No problem. Feel free to return when you\'d like to assess your stress levels.');
         } else {
-          handleInitialGreetingResponse(response);
+          addMessage('bot', 'Please answer with yes or no.');
         }
-      } else {
-        if (!dassData || !dassData.questions || !dassData.categories) {
-          addMessage('bot', "I'm sorry, I'm having trouble accessing the assessment questions. Please try refreshing the page.");
-          setIsLoading(false);
-          return;
-        }
-
-        const score = extractScoreFromResponse(response);
-        if (score !== null) {
-          setResponses(prev => [...prev, [score, categoryMapping[dassData.categories[currentQuestion]]]]);
+      } else if (!assessment.completed) {
+        const validResponses = ['never', 'almost never', 'sometimes', 'fairly often', 'very often'];
+        
+        if (!validResponses.includes(response)) {
+          addMessage('bot', 'Please use one of these responses: never, almost never, sometimes, fairly often, or very often');
+        } else {
+          const updatedResponses = [...assessment.currentResponses, response];
           
-          if (currentQuestion < dassData.questions.length - 1) {
-            setCurrentQuestion(prev => prev + 1);
-            addMessage('bot', dassData.questions[currentQuestion + 1]);
-          } else {
-            const scores = calculateScores([...responses, [score, categoryMapping[dassData.categories[currentQuestion]]]]);
-            provideFeedback(scores);
-            setAssessmentStarted(false);
-            setCurrentQuestion(0);
-            setResponses([]);
+          try {
+            const formattedResponses = updatedResponses.map((resp, idx) => [
+              assessment.currentQuestionIndex - updatedResponses.length + idx + 1,
+              resp
+            ]);
+            
+            const nextQuestion = await getNextQuestion(formattedResponses);
+            
+            if (nextQuestion && !nextQuestion.complete) {
+              setAssessment(prev => ({
+                ...prev,
+                currentResponses: updatedResponses,
+                currentQuestionIndex: nextQuestion.question_index
+              }));
+              addMessage('bot', 'In the last month, ' + nextQuestion.question);
+            } else {
+              await handleAssessmentSubmit(updatedResponses);
+            }
+          } catch (error) {
+            throw new Error('Failed to process question response: ' + error.message);
           }
+        }
+      } else if (assessment.completed) {
+        if (response === 'yes') {
+          if (assessment.showingHistory) {
+            setAssessment({
+              inProgress: true,
+              currentResponses: [],
+              currentQuestionIndex: 0,
+              completed: false,
+              showingHistory: false
+            });
+            const nextQuestion = await getNextQuestion([]);
+            if (nextQuestion && !nextQuestion.complete) {
+              addMessage('bot', 'In the last month, ' + nextQuestion.question);
+              addMessage('bot', 'Please answer with: never, almost never, sometimes, fairly often, or very often');
+              setAssessment(prev => ({
+                ...prev,
+                currentQuestionIndex: nextQuestion.question_index
+              }));
+            }
+          } else {
+            setAssessment(prev => ({ ...prev, showingHistory: true }));
+            await fetchAndDisplayHistory();
+          }
+        } else if (response === 'no') {
+          addMessage('bot', 'Thank you for completing the assessment. Take care!');
         } else {
-          addMessage('bot', "I'm having trouble understanding your response. Could you please rephrase it using terms like 'never', 'sometimes', 'often', or 'frequently'?");
+          addMessage('bot', 'Please answer with yes or no.');
         }
       }
     } catch (error) {
-      console.error('Error handling response:', error);
-      addMessage('bot', "I'm sorry, something went wrong. Please try again.");
+      console.error('Error:', error);
+      addMessage('bot', 'Sorry, there was an error. Would you like to try again? (yes/no)');
+      setAssessment({
+        inProgress: false,
+        currentResponses: [],
+        currentQuestionIndex: null,
+        completed: false,
+        showingHistory: false
+      });
     }
 
     setIsLoading(false);
   };
 
-  // Auto-scroll effect
-  useEffect(() => {
-    if (chatWindowRef.current) {
-      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
-    }
-  }, [messages]);
-
   return (
     <div className={`chat-screen ${darkMode ? 'dark' : ''}`}>
       <header>
-        <h2>StressGuru Chat</h2>
+        <h2>StressGuru</h2>
         <div className="header-actions">
-          <button onClick={() => setDarkMode(!darkMode)} className="dark-mode-toggle">
+          <button 
+            onClick={() => setDarkMode(!darkMode)} 
+            className="dark-mode-toggle"
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
             {darkMode ? '🌞' : '🌙'}
           </button>
-          <button className="logout-btn" onClick={() => navigate('welcome')}>
+          <button 
+            className="logout-btn" 
+            onClick={() => navigate('welcome')}
+            aria-label="Logout"
+          >
             <FiLogOut />
           </button>
         </div>
       </header>
       <div className="chat-window" ref={chatWindowRef}>
-        {messages.map((msg, index) => (
-          <div key={index} className={`message-bubble ${msg.sender}`}>
-            <div className="message-text">{msg.text}</div>
+        {messages.map((msg) => (
+          <div 
+            key={msg.id} 
+            className={`message-bubble ${msg.sender}`}
+          >
+            <div className="message-text">
+              {animatedMessages.has(msg.id) ? msg.text : displayedTexts[msg.id] || ''}
+            </div>
           </div>
         ))}
       </div>
       <div className="message-input">
         <input 
           type="text" 
-          placeholder={dataLoaded ? "Type a message..." : "Loading..."}
+          placeholder={assessment.inProgress && !assessment.completed ? 
+            "Type: never, almost never, sometimes, fairly often, or very often" : 
+            "Type yes or no..."}
           value={userResponse}
           onChange={(e) => setUserResponse(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && !isLoading && userResponse.trim() && handleUserResponse()}
-          disabled={isLoading || !dataLoaded}
+          aria-label="Response input"
+          disabled={isAnimating.current}
         />
         <button 
           onClick={handleUserResponse}
-          disabled={isLoading || !userResponse.trim() || !dataLoaded}
+          disabled={isLoading || !userResponse.trim() || isAnimating.current}
+          aria-label="Send response"
         >
           {isLoading ? '...' : '🚀'}
         </button>
