@@ -17,7 +17,7 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #7e57c2;
+  background-color: #0492C2;
   color: white;
   padding: 0 20px;
 }
@@ -38,14 +38,14 @@ body {
 .welcome-screen .btn {
   padding: 14px 36px;
   font-size: 1.2rem;
-  color: #7e57c2;
+  color: #0492C2;
   background-color: white;
   border: none;
   border-radius: 50px;
   cursor: pointer;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  border: 2px solid #7e57c2;
+  border: 2px solid #0492C2;
 }
 
 .welcome-screen .btn:hover {
@@ -79,14 +79,14 @@ form input {
 }
 
 form input:focus {
-  border-color: #7e57c2;
+  border-color: #0492C2;
 }
 
 form button {
   padding: 14px 36px;
   font-size: 1.2rem;
   color: white;
-  background-color: #7e57c2;
+  background-color: #0492C2;
   border: none;
   border-radius: 50px;
   cursor: pointer;
@@ -95,14 +95,14 @@ form button {
 }
 
 form button:hover {
-  background-color: #5e35b1;
+  background-color: #1338BE;
   transform: scale(1.1);
 }
 
 a {
   margin-top: 15px;
   font-size: 0.9rem;
-  color: #7e57c2;
+  color: #0492C2;
   text-decoration: none;
   font-weight: bold;
 }
@@ -128,7 +128,7 @@ a:hover {
 }
 
 .password-container input:focus {
-  border-color: #7e57c2;
+  border-color: #0492C2;
 }
 
 .password-toggle {
@@ -166,7 +166,7 @@ a:hover {
   justify-content: space-between;
   align-items: center;
   padding: 15px 30px;
-  background-color: #7e57c2;
+  background-color: #0492C2;
   color: white;
   border-radius: 15px 15px 0 0;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
@@ -189,7 +189,7 @@ a:hover {
 }
 
 .chat-screen .header-actions button:hover {
-  background-color: #5e35b1;
+  background-color: #1338BE;
 }
 
 .chat-screen .logout-btn {
@@ -226,25 +226,25 @@ a:hover {
 }
 
 .message-bubble.user {
-  background-color: #7e57c2; 
+  background-color: #0492C2; 
   color: white; 
   text-align: right;
   margin-left: auto; 
 }
 
 .message-bubble.bot {
-  background-color: #f3e5f5; 
+  background-color: #63C5DA; 
   color: #333; 
   text-align: left;
 }
 
 .chat-screen.dark .message-bubble.bot {
-  background-color: #444444; 
+  background-color: #281E5D; 
   color: #f1f1f1; 
 }
 
 .chat-screen.dark .message-bubble.user {
-  background-color: #6a1b9a; 
+  background-color: #1338BE; 
 }
 
 .message-input {
@@ -262,7 +262,7 @@ a:hover {
 }
 
 .message-input button {
-  background-color: #7e57c2;
+  background-color: #0492C2;
   color: white;
   padding: 12px;
   border-radius: 50%;
@@ -274,7 +274,7 @@ a:hover {
 }
 
 .message-input button:hover {
-  background-color: #5e35b1;
+  background-color: #1338BE;
   transform: scale(1.1);
 }
 
@@ -282,9 +282,9 @@ a:hover {
   margin-top: 10px;
   padding: 12px 30px;
   font-size: 1.1rem;
-  color: #6a1b9a;
+  color: #1338BE;
   background-color: white;
-  border: 2px solid #6a1b9a;
+  border: 2px solid #1338BE;
   border-radius: 30px;
   cursor: pointer;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
@@ -316,7 +316,7 @@ a:hover {
 .link-button {
   margin-top: 10px;
   background: none;
-  color: #6a1b9a;
+  color: #1520A6;
   border: none;
   padding: 0;
   font-size: inherit;
@@ -324,5 +324,5 @@ a:hover {
   text-decoration: underline;
 }
 .link-button:hover {
-  color: #5e35b1;
+  color: #1338BE;
 }
