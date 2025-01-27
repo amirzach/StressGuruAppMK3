@@ -51,26 +51,148 @@ def initialize_user_knowledge_base(user_id):
                     "patterns": [
                         {
                             "responses": {
+                                "0": "never",
+                                "1": "never",
+                                "2": "almost never",
+                                "3": "very often",
+                                "4": "very often",
+                                "5": "never",
+                                "6": "very often",
+                                "7": "very often",
+                                "8": "never",
+                                "9": "never"                                
+                            },
+                            "stress_level": "low stress",
+                            "frequency": 5
+                        },
+                        {
+                            "responses": {
+                                "0": "almost never",
+                                "1": "almost never",
+                                "2": "almost never",
+                                "3": "fairly often",
+                                "4": "fairly often",
+                                "5": "almost never",
+                                "6": "fairly often",
+                                "7": "fairly often",
+                                "8": "almost never",
+                                "9": "almost never" 
+                            },
+                            "stress_level": "low stress",
+                            "frequency": 5
+                        },
+                        {
+                            "responses": {
+                                "0": "sometimes",
+                                "1": "sometimes",
+                                "2": "almost never",
+                                "3": "sometimes",
+                                "4": "fairly often",
+                                "5": "almost never",
+                                "6": "fairly often",
+                                "7": "fairly often",
+                                "8": "sometimes",
+                                "9": "almost never"  
+                            },
+                            "stress_level": "low stress",
+                            "frequency": 5
+                        },
+                        {
+                            "responses": {
+                                "0": "sometimes",
+                                "1": "sometimes",
+                                "2": "sometimes",
+                                "3": "sometimes",
+                                "4": "sometimes",
+                                "5": "sometimes",
+                                "6": "sometimes",
+                                "7": "sometimes",
+                                "8": "sometimes",
+                                "9": "sometimes"  
+                            },
+                            "stress_level": "moderate stress",
+                            "frequency": 5
+                        },
+                        {
+                            "responses": {
+                                "0": "fairly often",
+                                "1": "fairly often",
+                                "2": "fairly often",
+                                "3": "sometimes",
+                                "4": "sometimes",
+                                "5": "sometimes",
+                                "6": "sometimes",
+                                "7": "sometimes",
+                                "8": "fairly often",
+                                "9": "sometimes" 
+                            },
+                            "stress_level": "moderate stress",
+                            "frequency": 5
+                        },
+                        {
+                            "responses": {
+                                "0": "fairly often",
+                                "1": "fairly often",
+                                "2": "fairly often",
+                                "3": "almost never",
+                                "4": "almost never",
+                                "5": "fairly often",
+                                "6": "sometimes",
+                                "7": "sometimes",
+                                "8": "fairly often",
+                                "9": "fairly often"  
+                            },
+                            "stress_level": "moderate stress",
+                            "frequency": 5
+                        },
+                        {
+                            "responses": {
                                 "0": "very often",
                                 "1": "very often",
                                 "2": "fairly often",
                                 "3": "almost never",
-                                "4": "almost never"
+                                "4": "almost never",
+                                "5": "very often",
+                                "6": "almost never",
+                                "7": "almost never",
+                                "8": "fairly often",
+                                "9": "very often"  
                             },
                             "stress_level": "high stress",
                             "frequency": 5
                         },
                         {
                             "responses": {
-                                "0": "never",
-                                "1": "almost never",
-                                "2": "sometimes",
-                                "3": "fairly often",
-                                "4": "fairly often"
+                                "0": "very often",
+                                "1": "very often",
+                                "2": "very often",
+                                "3": "never",
+                                "4": "almost never",
+                                "5": "very often",
+                                "6": "almost never",
+                                "7": "never",
+                                "8": "very often",
+                                "9": "very often" 
                             },
-                            "stress_level": "low stress",
+                            "stress_level": "high stress",
                             "frequency": 5
-                        }
+                        },
+                        {
+                            "responses": {
+                                "0": "very often",
+                                "1": "very often",
+                                "2": "very often",
+                                "3": "never",
+                                "4": "never",
+                                "5": "very often",
+                                "6": "never",
+                                "7": "never",
+                                "8": "very often",
+                                "9": "very often" 
+                            },
+                            "stress_level": "high stress",
+                            "frequency": 5
+                        }                                                                                               
                     ]
                 },
                 "question_weights": {str(i): 1.0 for i in range(10)},
