@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
 import warnings
+import json
 from functools import wraps
 from collections import defaultdict
 
@@ -36,164 +37,18 @@ ai_system = AdaptiveStress20QAI()
 
 # Modified initialize_user_knowledge_base function in server.py
 def initialize_user_knowledge_base(user_id):
-    """
-    Initialize a new user's knowledge base in MongoDB if it doesn't exist.
-    """
+    """Initialize a new user's knowledge base in MongoDB if it doesn't exist."""
     try:
-        # Check if knowledge base already exists for user
         existing_kb = knowledge_base_collection.find_one({"user_id": str(user_id)})
         
         if not existing_kb:
-            # Initial knowledge base structure
+            with open('initial_patterns.json', 'r') as f:
+                patterns_data = json.load(f)
+            
             initial_kb = {
                 "user_id": str(user_id),
                 "knowledge_base": {
-                    "patterns": [
-                        {
-                            "responses": {
-                                "0": "never",
-                                "1": "never",
-                                "2": "almost never",
-                                "3": "very often",
-                                "4": "very often",
-                                "5": "never",
-                                "6": "very often",
-                                "7": "very often",
-                                "8": "never",
-                                "9": "never"                                
-                            },
-                            "stress_level": "low stress",
-                            "frequency": 5
-                        },
-                        {
-                            "responses": {
-                                "0": "almost never",
-                                "1": "almost never",
-                                "2": "almost never",
-                                "3": "fairly often",
-                                "4": "fairly often",
-                                "5": "almost never",
-                                "6": "fairly often",
-                                "7": "fairly often",
-                                "8": "almost never",
-                                "9": "almost never" 
-                            },
-                            "stress_level": "low stress",
-                            "frequency": 5
-                        },
-                        {
-                            "responses": {
-                                "0": "sometimes",
-                                "1": "sometimes",
-                                "2": "almost never",
-                                "3": "sometimes",
-                                "4": "fairly often",
-                                "5": "almost never",
-                                "6": "fairly often",
-                                "7": "fairly often",
-                                "8": "sometimes",
-                                "9": "almost never"  
-                            },
-                            "stress_level": "low stress",
-                            "frequency": 5
-                        },
-                        {
-                            "responses": {
-                                "0": "sometimes",
-                                "1": "sometimes",
-                                "2": "sometimes",
-                                "3": "sometimes",
-                                "4": "sometimes",
-                                "5": "sometimes",
-                                "6": "sometimes",
-                                "7": "sometimes",
-                                "8": "sometimes",
-                                "9": "sometimes"  
-                            },
-                            "stress_level": "moderate stress",
-                            "frequency": 5
-                        },
-                        {
-                            "responses": {
-                                "0": "fairly often",
-                                "1": "fairly often",
-                                "2": "fairly often",
-                                "3": "sometimes",
-                                "4": "sometimes",
-                                "5": "sometimes",
-                                "6": "sometimes",
-                                "7": "sometimes",
-                                "8": "fairly often",
-                                "9": "sometimes" 
-                            },
-                            "stress_level": "moderate stress",
-                            "frequency": 5
-                        },
-                        {
-                            "responses": {
-                                "0": "fairly often",
-                                "1": "fairly often",
-                                "2": "fairly often",
-                                "3": "almost never",
-                                "4": "almost never",
-                                "5": "fairly often",
-                                "6": "sometimes",
-                                "7": "sometimes",
-                                "8": "fairly often",
-                                "9": "fairly often"  
-                            },
-                            "stress_level": "moderate stress",
-                            "frequency": 5
-                        },
-                        {
-                            "responses": {
-                                "0": "very often",
-                                "1": "very often",
-                                "2": "fairly often",
-                                "3": "almost never",
-                                "4": "almost never",
-                                "5": "very often",
-                                "6": "almost never",
-                                "7": "almost never",
-                                "8": "fairly often",
-                                "9": "very often"  
-                            },
-                            "stress_level": "high stress",
-                            "frequency": 5
-                        },
-                        {
-                            "responses": {
-                                "0": "very often",
-                                "1": "very often",
-                                "2": "very often",
-                                "3": "never",
-                                "4": "almost never",
-                                "5": "very often",
-                                "6": "almost never",
-                                "7": "never",
-                                "8": "very often",
-                                "9": "very often" 
-                            },
-                            "stress_level": "high stress",
-                            "frequency": 5
-                        },
-                        {
-                            "responses": {
-                                "0": "very often",
-                                "1": "very often",
-                                "2": "very often",
-                                "3": "never",
-                                "4": "never",
-                                "5": "very often",
-                                "6": "never",
-                                "7": "never",
-                                "8": "very often",
-                                "9": "very often" 
-                            },
-                            "stress_level": "high stress",
-                            "frequency": 5
-                        }                                                                                               
-                    ]
+                    "patterns": patterns_data["patterns"]
                 },
                 "question_weights": {str(i): 1.0 for i in range(10)},
                 "historical_data": [],
