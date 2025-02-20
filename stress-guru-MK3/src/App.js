@@ -96,8 +96,7 @@ const RegisterScreen = ({ navigate }) => {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
+  
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
@@ -109,7 +108,7 @@ const RegisterScreen = ({ navigate }) => {
 
       const data = await response.json();
       if (response.ok) {
-        setSuccess('Registration successful! Please log in.');
+        navigate('login');
       } else {
         setError(data.error || 'Registration failed');
       }
@@ -122,7 +121,6 @@ const RegisterScreen = ({ navigate }) => {
     <div className="register-screen">
       <h2>Register</h2>
       {error && <p className="error">{error}</p>}
-      {success && <p className="success">{success}</p>}
       <form onSubmit={handleRegister}>
         <input 
           type="email" 
@@ -160,8 +158,8 @@ const ChangePasswordScreen = ({ navigate }) => {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    setError(''); // Clear previous error
-    setSuccess(''); // Clear previous success message
+    setError(''); 
+    setSuccess(''); 
 
     if (!email || !newPassword) {
       setError('Email and new password are required.');
@@ -172,7 +170,7 @@ const ChangePasswordScreen = ({ navigate }) => {
       const response = await fetch('http://localhost:5001/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, new_password: newPassword }), // Match the backend key
+        body: JSON.stringify({ email, new_password: newPassword }), 
       });
 
       const data = await response.json();
@@ -181,7 +179,7 @@ const ChangePasswordScreen = ({ navigate }) => {
         setEmail('');
         setNewPassword('');
       } else {
-        setError(data.message || 'Password reset failed.'); // Match backend error response key
+        setError(data.message || 'Password reset failed.'); 
       }
     } catch (err) {
       setError('Server error. Please try again.');
@@ -230,7 +228,7 @@ const ChatScreen = ({ navigate }) => {
   });
   
   const chatWindowRef = useRef(null);
-  const typewriterSpeed = 30;
+  const typewriterSpeed = 10;
   const messageQueue = useRef([]);
   const isAnimating = useRef(false);
   const isInitialized = useRef(false);
